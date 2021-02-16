@@ -30,3 +30,4 @@ know you can connect to the server `ssh ubuntu@ip`
 
 You can create an agent to not type the passphrase each time `eval $(ssh-agent)` and after that `ssh-add` to make it easier we can create an alias with the follow command `alias ssha='eval $(ssh-agent) && ssh-add'` 
 
+create a repository on GitHub and add the public key to GitHub `cat  ~/.ssh/id_ed25519.pub` 
