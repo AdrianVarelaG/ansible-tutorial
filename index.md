@@ -97,3 +97,55 @@ ansible all -m gather_facts
 ansible all -m gather_facts --limit 10.13.92.172
 ```
 
+## Making changes
+Ansible have the same problem went try to do modifications because you need to be the root or use `sudo` so if we try to run `ansible all -m apt -a update_cache=true` this will fail. SO we need to include the flags `--become` to indicate run as sudo and `--ask-become-pass` to ask for the password. This command is the same if you connect to the servers and run `sudo apt update`, you can review the documentation of the [ansible apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html) for more details. 
+
+Now let's install a vim editor to do it we will use the apt module again with the command `ansible all -m apt -a name=vim-nox --become` with this we can connect to the servers and review it.
+```bash
+ubuntu@ansible-1:~$ which vim
+/usr/bin/vim
+ubuntu@ansible-1:~$ apt search vim-nox
+Sorting... Done
+Full Text Search... Done
+vim-nox/focal,now 2:8.1.2269-1ubuntu5 amd64 [installed]
+  Vi IMproved - enhanced vi editor - with scripting languages support
+
+vim-tiny/focal,now 2:8.1.2269-1ubuntu5 amd64 [installed,automatic]
+  Vi IMproved - enhanced vi editor - compact version
+```
+## PlayBook
+les create or first playbook create a file `install_apache.yml` with this content.
+```yml
+---
+
+- hosts: all
+  become: true
+  tasks:
+  - name: install the apache2 package
+    apt:
+      name: apache2
+```
+to explain the file let's review the content
+* **hosts: all** indicates all the host in the inventory file
+* **become: true** run as sudo
+* **name: install the apache2 package** is the description for you task.
+* **apt** the module to use.
+* **name: apache2** Name of the package
+
+To run we will use the command `ansible-playbook install_apache.yml`, now we can review the output.
+```bash
+PLAY [all] **********************************************************************
+
+TASK [Gathering Facts] **********************************************************
+ok: [10.13.92.223]
+ok: [10.13.92.172]
+
+TASK [install the apache2 package] **********************************************
+changed: [10.13.92.172]
+changed: [10.13.92.223]
+
+PLAY RECAP **********************************************************************
+10.13.92.172               : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+10.13.92.223               : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+SO the play book first retrieve the facts on each server and then execute the tasks this shows the name of the task and in the recap shows what happen on each server in this case `changed=1` means one change and `ok=2` means all is ok.
