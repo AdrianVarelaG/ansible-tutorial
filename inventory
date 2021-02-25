@@ -1,2 +1,5 @@
-10.13.92.172
-10.13.92.223
+[web_servers]
+10.13.92.172    apache_package=apache2 php_package=libapache2-mod-php
+
+[db_servers]
+10.13.92.223    apache_package=apache2 php_package=libapache2-mod-php
