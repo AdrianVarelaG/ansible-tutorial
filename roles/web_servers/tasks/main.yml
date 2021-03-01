@@ -2,17 +2,16 @@
   tags: apache,apache2,ubuntu
   package:
     name: 
-    - "{{ apache_package }}"
-    - "{{ php_package }}"
+    - "{{ apache_package_name }}"
+    - "{{ php_package_name }}"
     state: latest
 
-- name: start httpd (CentOS)
-  tags: apache, centos,httpd
+- name: start and enable the apache service
+  tags: apache,httpd
   service:
-    name: httpd
+    name: "{{ apache_service }}"
     state: started
-    enable: yes
-  when: ansible_distribution == "CentOS"
+    enabled: yes
 
 - name: change e-mail address for admin
   tags: apache,centos,httpd
@@ -21,7 +20,7 @@
     regexp: '^ServerAdmin'
     line: ServerAdmin somebody@somwwhere.net
   when: ansible_distribution == "CentOS"
-  register: httpd
+  notify: restart_apache
 
 - name: copy default html file for site
   tags: apache,apached2,httpd
@@ -31,3 +30,4 @@
     owner: root
     group: root
     mode: 0644
+  notify: restart_apache
