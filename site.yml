@@ -3,12 +3,23 @@
 - hosts: all
   become: true
   pre_tasks:
-  - name: install updates (ubuntu)
+  - name: update repo cache (ubuntu)
     tags: always
     apt:
-      upgrade: dist
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
+  
+  - name: add ssh key for simone
+    tags: always
+    authorized_key:
+      user: simone
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKqvCSwtFSAaDZoh2ys1C34qIzkFWqQd6dRJkyzn9ZrC ansible"
+    
 
 - hosts: workstations
   become: true
@@ -35,6 +46,24 @@
       - "{{ apache_package }}"
       - "{{ php_package }}"
       state: latest
+
+  - name: start httpd (CentOS)
+    tags: apache, centos,httpd
+    service:
+      name: httpd
+      state: started
+      enable: yes
+    when: ansible_distribution == "CentOS"
+
+  - name: change e-mail address for admin
+    tags: apache,centos,httpd
+    lineinfile: 
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somwwhere.net
+    when: ansible_distribution == "CentOS"
+    register: httpd
+
   - name: copy default html file for site
     tags: apache,apached2,httpd
     copy:
@@ -43,6 +72,7 @@
       owner: root
       group: root
       mode: 0644
+
 - hosts: db_servers
   become: true
   tasks:
